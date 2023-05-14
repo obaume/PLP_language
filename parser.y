@@ -5,6 +5,7 @@
 {
 module Parser (parser) where
 import Lexer
+import Lang
 }
 
 %name parser
@@ -47,16 +48,16 @@ import Lexer
 
 -- Instructions
 ---------------
-Stmt    : Def                                   { Def $1 }
-        | Expr                                  { Expr $1}
+Stmt    : Def                                   { Lang.Def $1 }
+        | Expr                                  { Lang.Expr $1}
 
 -- Définitions
 --------------
-Def     : Type 'name' '=' Expr                  { Definition $2 [] $4 }
+Def     : Type 'name' '=' Expr                  { Lang.Definition $2 [] $4 }
         | FuncDef                               { $1 }
 
-FuncDef : Type 'name' '(' Params ')' Expr       { Definition $2 $4 $6 }
-        | Type 'name' '(' ')' Expr              { Definition $2 [] $6 }
+FuncDef : Type 'name' '(' Params ')' Expr       { Lang.Definition $2 $4 $6 }
+        | Type 'name' '(' ')' Expr              { Lang.Definition $2 [] $6 }
 
 Params  : Param                                 { [$1] }
         | Param ',' Params                      { $1:$3}
@@ -65,25 +66,25 @@ Param   : Type 'name'                           { Param $1 $2 }
 
 -- Expressions
 --------------
-Expr    : Value                                 { Value $1 }
+Expr    : Value                                 { Lang.Value $1 }
         | FuncApp                               { $1 }
         | Cond                                  { $1 }
-        | let Def in Exp                        { Let $2 $4 $6 }
-        | 'case' Expr 'of' CasePatterns         { CaseOf $2 $4 }
-        | UnaryOp Expr                          { UnaryOp $1 $2 }
-        | Expr BinaryOp Expr                    { BinaryOp $1 $2 $3 }
+        | let Def in Exp                        { Lang.Let $2 $4 $6 }
+        | 'case' Expr 'of' CasePatterns         { Lang.CaseOf $2 $4 }
+        | UnaryOp Expr                          { Lang.UnaryOp $1 $2 }
+        | Expr BinaryOp Expr                    { Lang.BinaryOp $1 $2 $3 }
 
 -- Valeurs
-Value   : 'int'                                 { IntValue $1}
-        | 'bool'                                { BoolValue $1 }
+Value   : 'int'                                 { Lang.IntValue $1}
+        | 'bool'                                { Lang.BoolValue $1 }
         | Tuple                                 { $1 }
 
-Tuple   : '('')'                                { TupleValue _ _ }
-        | '(' Expr ',' Expr ')'                 { TupleValue $2 $4} 
+Tuple   : '('')'                                { Lang.TupleValue _ _ }
+        | '(' Expr ',' Expr ')'                 { Lang.TupleValue $2 $4} 
 
 -- Applications de fonctions
-FuncApp : 'name' '(' Args ')'                   { FuncApp $1 }
-        | 'name' '(' ')'                        { FuncApp [] }
+FuncApp : 'name' '(' Args ')'                   { Lang.App $1 $3}
+        | 'name' '(' ')'                        { FuncApp $1 []}
 
 Args    : Expr                                  { [$1] }
         | Expr ',' Args                         { $1:$3 }
@@ -101,29 +102,30 @@ CasePatterns : CasePattern                      { [$1] }
 
 CasePattern  : Pattern '->' Expr                { ($1, $3) }
 
-Pattern : Value                                 { Value $1 }
-        | 'name'                                { Var $1 }
-        | '_'                                   { Wildcard }
+Pattern : Value                                 { Lang.PValue $1 }
+        | 'name'                                { Lang.PVar $1 }
+        | '_'                                   { Lang.PWildcard }
 
 -- Opérateurs Unaires
-UnaryOp : '-'                                   { }
-        | '++'                                  { }
-        | '--'                                  { }
-        | '!'                                   { }
+UnaryOp : '-'                                   { Lang.Operator Lang.Arithmetic "-" }
+        | '++'                                  { Lang.Operator Lang.Arithmetic "++"}
+        | '--'                                  { Lang.Operator Lang.Arithmetic "--"}
+        | '!'                                   { Lang.Operator Lang.Logical "!" }
 
 -- Opérateurs Binaires
-BinaryOp : '+'                                  { }
-         | '-'                                  { }
-         | '*'                                  { }
-         | '/'                                  { }
-         | '&&'                                 { }
-         | '||'                                 { }
-         | '=='                                 { }
-         | '!='                                 { }
-         | '<'                                  { }
-         | '<='                                 { }
-         | '>'                                  { }
-         | '>='                                 { }
+BinaryOp : '+'                                  { Lang.Operator Lang.Arithmetic "+"}
+         | '-'                                  { Lang.Operator Lang.Arithmetic "-"}
+         | '*'                                  { Lang.Operator Lang.Arithmetic "*"}
+         | '/'                                  { Lang.Operator Lang.Arithmetic "/"}
+         | '%'                                  { Lang.Operator Lang.Arithmetic "%"}
+         | '&&'                                 { Lang.Operator Lang.Logical "&&"}
+         | '||'                                 { Lang.Operator Lang.Logical "||"}
+         | '=='                                 { Lang.Operator Lang.Comparaison "=="}
+         | '!='                                 { Lang.Operator Lang.Comparaison "!="}
+         | '<'                                  { Lang.Operator Lang.Relational "<"}
+         | '<='                                 { Lang.Operator Lang.Relational "<="}
+         | '>'                                  { Lang.Operator Lang.Relational ">"}
+         | '>='                                 { Lang.Operator Lang.Relational ">="}
 
 {
 parseError :: [Token] -> a
