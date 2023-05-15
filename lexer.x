@@ -57,6 +57,7 @@ data Token
   | Of
   | If
   | Else
+  | Name
   | Arrow
   | Var String
   | Int Int

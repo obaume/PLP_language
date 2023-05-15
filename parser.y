@@ -17,11 +17,12 @@ import Lang
     in      { Lexer.In }
     case    { Lexer.Case }
     of      { Lexer.Of }
-    int     { Lexer.Int $$ }
-    bool    { Lexer.Bool $$ }
-    "if"    { Lexer.If }
-    "else"  { Lexer.Else }
-    "->"    { Lexer.Arrow }
+    'int'   { Lexer.Int $$ }
+    'bool'  { Lexer.Bool $$ }
+    'if'    { Lexer.If }
+    'else'  { Lexer.Else }
+    'name'  { Lexer.Name }
+    '->'    { Lexer.Arrow }
     '='     { Lexer.Affect }
     '_'     { Lexer.Wildcard }
     '+'     { Lexer.Plus }
@@ -57,20 +58,20 @@ Def     : Type 'name' '=' Expr                  { Lang.Definition $2 [] $4 }
         | FuncDef                               { $1 }
 
 FuncDef : Type 'name' '(' Params ')' Expr       { Lang.Definition $2 $4 $6 }
-        | Type 'name' '(' ')' Expr              { Lang.Definition $2 [] $6 }
+        | Type 'name' '(' ')' Expr              { Lang.Definition $2 [] $5 }
 
 Params  : Param                                 { [$1] }
         | Param ',' Params                      { $1:$3}
 
-Param   : Type 'name'                           { Param $1 $2 }
+Param   : Type 'name'                           { Lang.Param $1 $2 }
 
 -- Expressions
 --------------
 Expr    : Value                                 { Lang.Value $1 }
         | FuncApp                               { $1 }
         | Cond                                  { $1 }
-        | let Def in Exp                        { Lang.Let $2 $4 $6 }
-        | 'case' Expr 'of' CasePatterns         { Lang.CaseOf $2 $4 }
+        | let Def in Expr                       { Lang.Let $2 $4 }
+        | case Expr of CasePatterns             { Lang.CaseOf $2 $4 }
         | UnaryOp Expr                          { Lang.UnaryOp $1 $2 }
         | Expr BinaryOp Expr                    { Lang.BinaryOp $1 $2 $3 }
 
@@ -79,22 +80,21 @@ Value   : 'int'                                 { Lang.IntValue $1}
         | 'bool'                                { Lang.BoolValue $1 }
         | Tuple                                 { $1 }
 
-Tuple   : '('')'                                { Lang.TupleValue _ _ }
-        | '(' Expr ',' Expr ')'                 { Lang.TupleValue $2 $4} 
+Tuple   : '(' Expr ',' Expr ')'                 { Lang.TupleValue $2 $4} 
 
 -- Applications de fonctions
 FuncApp : 'name' '(' Args ')'                   { Lang.App $1 $3}
-        | 'name' '(' ')'                        { FuncApp $1 []}
+        | 'name' '(' ')'                        { Lang.App $1 []}
 
 Args    : Expr                                  { [$1] }
         | Expr ',' Args                         { $1:$3 }
 
 -- Expressions conditionnelles parenthésées
-Cond    : 'if' '(' Expr ')' Stmt                { If $3 $5 }
-        | 'if' '(' Expr ')' Stmt 'else' Stmt    { IfElse $3 $5 $7 }
+Cond    : 'if' '(' Expr ')' Stmt                { Lang.If $3 $5 }
+        | 'if' '(' Expr ')' Stmt 'else' Stmt    { Lang.IfElse $3 $5 $7 }
 
-Type    : int                                   { Int }
-        | bool                                  { Bool }
+Type    : 'int'                                 { Lang.TInt }
+        | 'bool'                                { Lang.TBool }
 
 -- Patternes
 CasePatterns : CasePattern                      { [$1] }

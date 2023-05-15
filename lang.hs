@@ -1,4 +1,4 @@
-module lang where
+module Lang where
     type Name = String
     type TEnv = [(Name,Type)]
     type Env = [(Name,Value)]
@@ -10,6 +10,8 @@ module lang where
 
     data Expr 
         = App String [Expr]
+        | If Expr Statement
+        | IfElse Expr Statement Statement
         | Let [Definition] Expr
         | EVar String
         | Value Value
@@ -36,18 +38,18 @@ module lang where
         deriving(Show)
 
     data Definition
-        = Definition String [Arg] Expr
+        = Definition String [Param] Expr
         deriving (Show)
-
-    data Arg
-        = Arg Type String
+    
+    data Param
+        = Param Type String
         deriving (Show)
 
     data Value
         = BoolValue Bool
         | IntValue Int
         | TupleValue Expr Expr
-        | FuncValue Expr [Arg] Env
+        | FuncValue Expr [Param] Env
         deriving (Show)
 
     data Type 
