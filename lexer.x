@@ -3,7 +3,7 @@
 -- Permet l'analyse lexicale des termes de notre langage fonctionnel
 
 {
-module Lexer (lexer, Token(..)) where
+module Lexer where
 }
 
 %wrapper "basic"
@@ -15,14 +15,15 @@ tokens :-
 
     $white+                           ;
     "//".*                            ;
+    $digit+                           { \s -> Int (read s) }
     let                               { \_ -> Let }
     in                                { \_ -> In }
     case                              { \_ -> Case }
     of                                { \_ -> Of }
+    int | bool                        { \s -> Type s}
     "if"                              { \_ -> If }
     "else"                            { \_ -> Else }
     "->"                              { \_ -> Arrow }
-    $digit+                           { \s -> Int (read s) }
     "true"                            { \_ -> Bool True }
     "false"                           { \_ -> Bool False }
     "="                               { \_ -> Affect }
@@ -46,22 +47,22 @@ tokens :-
     "("                               { \_ -> LPar }
     ")"                               { \_ -> RPar }
     ","                               { \_ -> Comma }
-    $alpha [$alpha $digit \_ \']*     { \s -> Var s }
+    $alpha [$alpha $digit \_ \']*     { \s -> Name s }
 
 {
 
 data Token
   = Let
+  | Type String
   | In
   | Case
   | Of
   | If
   | Else
-  | Name
   | Arrow
-  | Var String
   | Int Int
   | Bool Bool
+  | Name String
   | Affect
   | Wildcard
   | Plus
