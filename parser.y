@@ -46,6 +46,7 @@ import qualified Lang
     '('     { LPar }
     ')'     { RPar }
     ','     { Comma }
+    ';'     { Semicolon }
 
 %right in
 %right '||'
@@ -57,24 +58,20 @@ import qualified Lang
 
 %%
 
--- Instructions
----------------
-Stmts   : Stmt                                  { [$1] }
-        | Stmt Stmts                            { $1:$2 }
-
-Stmt    : Def                                   { Lang.Def $1 }
-        | Expr                                  { Lang.Expr $1}
-
 -- Définitions
 --------------
-Defs    : Def                                   { [$1] }
-        | Def Defs                              { $1:$2 }
+Defs    : Def ';'                               { [$1] }
+        | Def ';' Defs                          { $1:$3 }
+
+-- Utilisé pour la liste de définitions de let
+ListDef : Def                                   { [$1] }
+        | Def ',' ListDef                       { $1:$3 }
 
 Def     : Type 'name' '=' Expr                  { Lang.ConstDefinition $1 $2 $4 }
         | FuncDef                               { $1 }
 
-FuncDef : Type 'name' '(' Params ')' Stmts      { Lang.FuncDefinition $1 $2 $4 $6 }
-        | Type 'name' '(' ')' Stmts             { Lang.FuncDefinition $1 $2 [] $5 }
+FuncDef : Type 'name' '(' Params ')' Expr       { Lang.FuncDefinition $1 $2 $4 $6 }
+        | Type 'name' '(' ')' Expr              { Lang.FuncDefinition $1 $2 [] $5 }
 
 Params  : Param                                 { [$1] }
         | Param ',' Params                      { $1:$3 }
@@ -86,15 +83,16 @@ Param   : Type 'name'                           { Lang.Param $1 $2 }
 Expr    : Value                                 { Lang.Value $1 }
         | FuncApp                               { $1 }
         | Cond                                  { $1 }
-        | '(' Expr ')'                          { Lang.Parenthesis $2 }
+        | '(' Expr ')'                          { $2 }
         | 'name'                                { Lang.EName $1 }
-        | let Defs in Expr                      { Lang.Let $2 $4 }
+        | let ListDef in Expr                   { Lang.Let $2 $4 }
         | case Expr of CasePatterns             { Lang.CaseOf $2 $4 }
         | UnaryOp Expr                          { Lang.UnaryOp $1 $2 }
         | Expr BinaryOp Expr                    { Lang.BinaryOp $1 $2 $3 }
 
 -- Valeurs
 Value   : 'int'                                 { Lang.IntValue $1}
+        | '-' 'int'                             { Lang.NegIntValue $2 }
         | 'bool'                                { Lang.BoolValue $1 }
         | Tuple                                 { $1 }
 
@@ -112,12 +110,12 @@ Args    : Expr                                  { [$1] }
         | Expr ',' Args                         { $1:$3 }
 
 -- Expressions conditionnelles
-Cond    : 'if' '(' Expr ')' Stmt                { Lang.If $3 $5 }
-        | 'if' '(' Expr ')' Stmt 'else' Stmt    { Lang.IfElse $3 $5 $7 }
+Cond    : 'if' '(' Expr ')' Expr                { Lang.If $3 $5 }
+        | 'if' '(' Expr ')' Expr 'else' Expr    { Lang.IfElse $3 $5 $7 }
 
 -- Patternes
 CasePatterns : CasePattern                      { [$1] }
-             | CasePattern CasePatterns         { $1:$2 }
+             | CasePattern ',' CasePatterns     { $1:$3 }
 
 CasePattern  : Pattern '->' Expr                { Lang.CasePattern $1 $3 }
 
@@ -147,8 +145,12 @@ BinaryOp : '+'                                  { Lang.Operator Lang.Arithmetic 
          | '>='                                 { Lang.Operator Lang.Comparaison ">="}
 
 -- Types
+Tuples  : Type ',' Type                         { [$1] ++ [$3] }
+        | Type ',' Tuples                       { $1:$3 }
+
 Type    : int                                   { Lang.TInt }
         | bool                                  { Lang.TBool }
+        | '(' Tuples ')'                        { Lang.TTuple $2 }
 
 {
 parseError :: [Token] -> a

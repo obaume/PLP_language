@@ -12,7 +12,7 @@ module Lang where
 
     data Definition
         = ConstDefinition Type String Expr
-        | FuncDefinition Type String [Param] [Statement]
+        | FuncDefinition Type String [Param] Expr
         deriving (Show)
         
     data Param
@@ -21,9 +21,8 @@ module Lang where
 
     data Expr 
         = FuncApp String [Expr]
-        | Parenthesis Expr
-        | If Expr Statement
-        | IfElse Expr Statement Statement
+        | If Expr Expr
+        | IfElse Expr Expr Expr
         | Let [Definition] Expr
         | EName String
         | Value Value
@@ -55,6 +54,7 @@ module Lang where
     data Value
         = BoolValue Bool
         | IntValue Int
+        | NegIntValue Int
         | TupleValue [Expr]
         | FuncValue Expr [Param] Env
         deriving (Show)
@@ -63,6 +63,4 @@ module Lang where
         = TBool
         | TInt
         | TTuple [Type]
-        | TFunc Type [Type]
-        | TWildcard
         deriving (Show,Eq)

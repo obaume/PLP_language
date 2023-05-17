@@ -13,9 +13,16 @@ $alpha = [a-zA-Z]
 
 tokens :-
 
+    -- Caractère blanc et de commentaire
     $white+                           ;
     "//".*                            ;
+
+    -- Expressions littérales
     $digit+                           { \s -> Int (read s) }
+    "true"                            { \_ -> Bool True }
+    "false"                           { \_ -> Bool False }
+
+    -- Instructions
     let                               { \_ -> Let }
     in                                { \_ -> In }
     case                              { \_ -> Case }
@@ -23,11 +30,13 @@ tokens :-
     int | bool                        { \s -> Type s}
     "if"                              { \_ -> If }
     "else"                            { \_ -> Else }
+
+    -- Opérateurs
     "->"                              { \_ -> Arrow }
-    "true"                            { \_ -> Bool True }
-    "false"                           { \_ -> Bool False }
     "="                               { \_ -> Affect }
     "_"                               { \_ -> Wildcard }
+
+    -- Arithmétiques
     "+"                               { \_ -> Plus }
     "-"                               { \_ -> Minus }
     "*"                               { \_ -> Star }
@@ -35,18 +44,27 @@ tokens :-
     "++"                              { \_ -> PlusPlus }
     "--"                              { \_ -> MinusMinus }
     "%"                               { \_ -> Mod }
+
+    -- Comparaisons
     "=="                              { \_ -> Equals }
     "!="                              { \_ -> NotEquals }
-    "!"                               { \_ -> Not }
     "<"                               { \_ -> Less }
     "<="                              { \_ -> LessEquals }
     ">"                               { \_ -> More }
     ">="                              { \_ -> MoreEquals }
+
+    -- Logiques
+    "!"                               { \_ -> Not }
     "&&"                              { \_ -> And }
     "||"                              { \_ -> Or }
+
+    -- Séparateurs
     "("                               { \_ -> LPar }
     ")"                               { \_ -> RPar }
     ","                               { \_ -> Comma }
+    ";"                               { \_ -> Semicolon }
+
+    -- Nom de variable
     $alpha [$alpha $digit \_ \']*     { \s -> Name s }
 
 {
@@ -84,6 +102,7 @@ data Token
   | LPar
   | RPar
   | Comma
+  | Semicolon
   deriving (Eq, Show)
   
 lexer = alexScanTokens
