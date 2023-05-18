@@ -68,10 +68,7 @@ ListDef : Def                                   { [$1] }
         | Def ',' ListDef                       { $1:$3 }
 
 Def     : Type 'name' '=' Expr                  { Lang.ConstDefinition $1 $2 $4 }
-        | FuncDef                               { $1 }
-
-FuncDef : Type 'name' '(' Params ')' Expr       { Lang.FuncDefinition $1 $2 $4 $6 }
-        | Type 'name' '(' ')' Expr              { Lang.FuncDefinition $1 $2 [] $5 }
+        | Type 'name' '(' Params ')' Expr       { Lang.FuncDefinition $1 $2 $4 $6 }
 
 Params  : Param                                 { [$1] }
         | Param ',' Params                      { $1:$3 }
