@@ -31,8 +31,6 @@ import qualified Lang
     '-'     { Minus }
     '*'     { Star }
     '/'     { Slash }
-    '++'    { PlusPlus }
-    '--'    { MinusMinus }
     '%'     { Mod }
     '=='    { Equals }
     '!='    { NotEquals }
@@ -79,7 +77,7 @@ Param   : Type 'name'                           { Lang.Param $1 $2 }
 --------------
 Expr    : Value                                 { Lang.Value $1 }
         | FuncApp                               { $1 }
-        | Cond                                  { $1 }
+        | 'if' '(' Expr ')' Expr 'else' Expr    { Lang.IfElse $3 $5 $7 }
         | '(' Expr ')'                          { $2 }
         | 'name'                                { Lang.EName $1 }
         | let ListDef in Expr                   { Lang.Let $2 $4 }
@@ -89,7 +87,7 @@ Expr    : Value                                 { Lang.Value $1 }
 
 -- Valeurs
 Value   : 'int'                                 { Lang.IntValue $1}
-        | '-' 'int'                             { Lang.NegIntValue $2 }
+        | '-' 'int'                             { Lang.IntValue (-$2) }
         | 'bool'                                { Lang.BoolValue $1 }
         | Tuple                                 { $1 }
 
@@ -106,10 +104,6 @@ FuncApp : 'name' '(' ')'                        { Lang.FuncApp $1 []}
 Args    : Expr                                  { [$1] }
         | Expr ',' Args                         { $1:$3 }
 
--- Expressions conditionnelles
-Cond    : 'if' '(' Expr ')' Expr                { Lang.If $3 $5 }
-        | 'if' '(' Expr ')' Expr 'else' Expr    { Lang.IfElse $3 $5 $7 }
-
 -- Patternes
 CasePatterns : CasePattern                      { [$1] }
              | CasePattern ',' CasePatterns     { $1:$3 }
@@ -122,8 +116,6 @@ Pattern : Value                                 { Lang.PValue $1 }
 
 -- Opérateurs Unaires
 UnaryOp : '-'                                   { Lang.Operator Lang.Arithmetic "-" }
-        | '++'                                  { Lang.Operator Lang.Arithmetic "++"}
-        | '--'                                  { Lang.Operator Lang.Arithmetic "--"}
         | '!'                                   { Lang.Operator Lang.Logical "!" }
 
 -- Opérateurs Binaires

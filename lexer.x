@@ -41,8 +41,6 @@ tokens :-
     "-"                               { \_ -> Minus }
     "*"                               { \_ -> Star }
     "/"                               { \_ -> Slash }
-    "++"                              { \_ -> PlusPlus }
-    "--"                              { \_ -> MinusMinus }
     "%"                               { \_ -> Mod }
 
     -- Comparaisons
@@ -87,8 +85,6 @@ data Token
   | Minus
   | Star
   | Slash
-  | PlusPlus
-  | MinusMinus
   | Mod
   | Equals
   | NotEquals

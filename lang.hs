@@ -21,7 +21,6 @@ module Lang where
 
     data Expr 
         = FuncApp String [Expr]
-        | If Expr Expr
         | IfElse Expr Expr Expr
         | Let [Definition] Expr
         | EName String
@@ -54,7 +53,6 @@ module Lang where
     data Value
         = BoolValue Bool
         | IntValue Int
-        | NegIntValue Int
         | TupleValue [Expr]
         | FuncValue Expr [Param] Env
         deriving (Show)

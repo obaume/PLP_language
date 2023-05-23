@@ -13,42 +13,59 @@
 
 |Fonction|Explication|
 |-|-|
-|`Type nom_fct (arg_fct) Expr`|Déclaration d'une fonction qui a le nom `nom_fct`, `arg_fct` peut avoir 0 ou n `Type` ceux-ci sont séparé par des `,`. Le corps de la fonction est défini dans `Expr`|
+|`Type nom_fct (arg_fct) expr`|Déclaration d'une fonction qui a le nom `nom_fct`, `arg_fct` peut avoir 0 ou n `Type` ceux-ci sont séparé par des `,`. Le corps de la fonction est défini dans `expr`|
+|`int f(int p) expr`|exemple de décalration d'une fonction `f` avec comme type de retour `int`, avec 1 argument de type int qui retourne une expression|
 
 ## Expression
 |Littéraux|Explication|
 |-|-|
 |`1, 42, -17, ...`|Entier de type `int`|
 |`true, false`|Booléan|
-|`(1,2), (true,false), (true,10), ...`|Tuple|
+|`(1,2,3), (true,false), ((true, false),10), ...`|Tuple|
 
 |Fonctions|Explication|
 |-|-|
-|`int f(int) expr;`|décalration d'une fonction `f` avec comme type de retour `int`, avec 1 argument de type int qui retourne une expression|
-|`f(14,x,true);`|appel d'une fonction `f` avec 3 arguments.|
+|`f(14,x,true)`|appel d'une fonction `f` avec 3 arguments.|
 
 |Conditionnel|Explication|
 |-|-|
-|`if (cond) expr`|Si cond est true expr est executer|
-|`if (cond) expr1 else expr2`|Lorsque cond est vrai expr1 est executé sinon expr2 est executé|
+|`if (cond) expr`|Si cond est true expr est executée|
+|`if (cond) expr1 else expr2`|Lorsque cond est vraie expr1 est executé sinon expr2 est executé|
 
 ### Déclaration locale avec corps
 ```C
 let
     def,
-    def,
+    ...,
     def
 in expr
 ```
 On fait autant de definition entre le `let` et le `in` (variables constantes ou fonction).Ces definitions sont utilisé dans l'expression du `in`.
 
+Exemple :
+```
+let int x = 0,
+    int fct(int a) 2 * a
+in fct(x)
+``` 
+
 ## Pattern matching
+```C++
+case expr of
+    pattern -> expr,
+    ...,
+    pattern -> expr
+```
+Un pattern peut être soit une variable, soit une valeur, soit une valeur universelle (`_`).
+
+Exemple :
 ```C++
 case expr of
     x -> expr,
     0 -> 0,
     _ -> 1
 ```
+
 Si `expr` est égal a la variable x alors le case retourne une expression, si expr est égal à 0 case retourne 0. Si aucun des patterns n'est matché alors on retourne 1 depuis la wildcard.
 
 ## Opérateurs 
@@ -78,19 +95,22 @@ Si `expr` est égal a la variable x alors le case retourne une expression, si ex
 |`>=`|`1 >= 2`| retourne true si l'opérande gauche est plus grand ou égal que l'opérande droite|
 
 
-## Exemples de code
+## Exemple de code
 ```C
-int t = 12; 
+int t = 12;
+bool b = true; 
 int coolfct(int value, int cool) 
-    if (func(value) && !fact(123)) 
+    if (func(value) && !b) 
         case value of 
             cool -> f(t), 
             123 -> value * 5, 
             _ -> value / 2 
-    else 
+    else if (b)
         let int fct(int val) 2 * val, 
             bool youhou = false 
-        in ret(fct(value), false);
+        in f(fct(value), false)
+    else 
+        cool;
 ```
 
 Notre language accepte seulement des definitions en début de ligne des definitions, on ne peut pas executer une expressions du style `f(12);`.
