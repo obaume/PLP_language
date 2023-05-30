@@ -3,6 +3,7 @@
 
 module Lang where
     type Name = String
+    type TEnv = [(Name, Type)]
     type Env = [(Name,Value)]
 
     data Statement
@@ -61,4 +62,6 @@ module Lang where
         = TBool
         | TInt
         | TTuple [Type]
+        | TFunc Type [Type]
+        | TWildcard
         deriving (Show,Eq)

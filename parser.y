@@ -56,12 +56,12 @@ import qualified Lang
 
 %%
 
--- Définitions
+-- definitions
 --------------
 Defs    : Def ';'                               { [$1] }
         | Def ';' Defs                          { $1:$3 }
 
--- Utilisé pour la liste de définitions de let
+-- Utilisé pour la liste de definitions de let
 ListDef : Def                                   { [$1] }
         | Def ',' ListDef                       { $1:$3 }
 
