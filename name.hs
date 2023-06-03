@@ -20,23 +20,43 @@ module Name where
             else error $ "la variable " ++ name ++ " existe déjà"
     checkDefinition def@(FuncDefinition t name params expr) env = 
         if not (nameExist name env)
-            then checkExpr expr (def : env)
+            then shadowing expr (def:env) (checkDefinitions defParams' [])
             else error $ "La fonction " ++ name ++ " existe déjà"
                 where 
                     params' = replicate (length params) TWildcard 
+                    defParams' = map (\(Param t n) -> ConstDefinition t n (Value (IntValue 0))) params
     checkDefinition' :: [Definition] -> Definition -> [Definition]
     checkDefinition' env def = checkDefinition def env
 
     checkDefinitions :: [Definition] -> [Definition] -> [Definition]
     checkDefinitions defs previousDefs = foldl checkDefinition' previousDefs defs
     
+    shadowing :: Expr -> [Definition] -> [Definition] -> [Definition]
+    shadowing shadowedExpr global local = case checkExpr shadowedExpr (shadowDefinitions global local) of
+        _ -> global 
+    
+    shadowDefinitions :: [Definition] -> [Definition] -> [Definition]
+    shadowDefinitions global (l@(ConstDefinition t name _):local) = 
+        if not $ nameExist name global 
+            then shadowDefinition l global 
+            else [] 
+            
+    shadowDefinition :: Definition -> [Definition] -> [Definition]
+    shadowDefinition new@(ConstDefinition _ name _) ((ConstDefinition _ name' _):global) =
+        if name == name' then (new:global)
+        else shadowDefinition new global
+    shadowDefinition new@(FuncDefinition _ name _ _) ((FuncDefinition _ name' _ _):global) =
+        if name == name' then (new:global)
+        else shadowDefinition new global
+        
+
     checkExpr :: Expr -> [Definition] -> [Definition]
     checkExpr (FuncApp name params) env = 
         if nameExist name env
             then checkParam name params env
             else error $ "La fonction " ++ name ++ " n'existe pas"
     checkExpr (IfElse cond t e) env = checkExprs (cond:t:[e]) env 
-    checkExpr (Lang.Let defs expr) env = checkExpr expr (checkDefinitions defs [])
+    checkExpr (Lang.Let defs expr) env = shadowing expr env defs
     checkExpr (EName name) env =
         if nameExist name env 
             then env
