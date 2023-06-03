@@ -12,19 +12,19 @@ module Lang where
         deriving (Show)
 
     data Definition
-        = ConstDefinition Type String Expr
-        | FuncDefinition Type String [Param] Expr
+        = ConstDefinition Type Name Expr
+        | FuncDefinition Type Name [Param] Expr
         deriving (Show)
         
     data Param
-        = Param Type String
+        = Param Type Name
         deriving (Show)
 
     data Expr 
-        = FuncApp String [Expr]
+        = FuncApp Name [Expr]
         | IfElse Expr Expr Expr
         | Let [Definition] Expr
-        | EName String
+        | EName Name
         | Value Value
         | CaseOf Expr [CasePattern]
         | UnaryOp Operator Expr
