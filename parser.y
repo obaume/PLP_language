@@ -80,7 +80,7 @@ Expr    : Value                                 { Lang.Value $1 }
         | 'if' '(' Expr ')' Expr 'else' Expr    { Lang.IfElse $3 $5 $7 }
         | '(' Expr ')'                          { $2 }
         | 'name'                                { Lang.EName $1 }
-        | let '(' ListDef ')' in '(' Expr ')'   { Lang.Let $3 $7 }
+        | let ListDef in Expr                   { Lang.Let $2 $4 }
         | case Expr of CasePatterns             { Lang.CaseOf $2 $4 }
         | UnaryOp Expr                          { Lang.UnaryOp $1 $2 }
         | Expr BinaryOp Expr                    { Lang.BinaryOp $1 $2 $3 }

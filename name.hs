@@ -20,7 +20,7 @@ module Name where
             else error $ "la variable " ++ name ++ " existe déjà"
     checkDefinition def@(FuncDefinition t name params expr) env = 
         if not (nameExist name env)
-            then shadowing expr (def:env) (checkDefinitions defParams' [])
+            then shadowing expr (def:env) (checkName defParams' [])
             else error $ "La fonction " ++ name ++ " existe déjà"
                 where 
                     params' = replicate (length params) TWildcard 
@@ -28,8 +28,9 @@ module Name where
     checkDefinition' :: [Definition] -> Definition -> [Definition]
     checkDefinition' env def = checkDefinition def env
 
-    checkDefinitions :: [Definition] -> [Definition] -> [Definition]
-    checkDefinitions defs previousDefs = foldl checkDefinition' previousDefs defs
+    -- fonction principale du module prends pour premier parametre la sortie du parser, et comme 2e parametre les définitions qui ont déjà été checké dans le cas général []
+    checkName :: [Definition] -> [Definition] -> [Definition]
+    checkName defs previousDefs = foldl checkDefinition' previousDefs defs
     
     shadowing :: Expr -> [Definition] -> [Definition] -> [Definition]
     shadowing shadowedExpr global local = case checkExpr shadowedExpr (shadowDefinitions global local) of

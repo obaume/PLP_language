@@ -11,17 +11,27 @@ module Type (typeof) where
         Nothing -> error $ name ++ " not found"
 
     addToEnv :: Definition -> TEnv -> TEnv
-    addToEnv (ConstDefinition t name expr) env = (name, typeofExpr expr env) : env
-    addToEnv (FuncDefinition t name params expr) env = (name, TFunc (typeofExpr expr env') params') : env
+    addToEnv (ConstDefinition t name expr) env = 
+        if t == t' 
+            then (name, t') : env 
+            else error "type de l'expression différent du type de la variable"
+        where
+            t' = typeofExpr expr env
+    addToEnv (FuncDefinition t name params expr) env = 
+        if t == t' 
+            then (name, TFunc t' params') : env
+            else error "type de retour différent du type de fonction"
         where
             env' = foldl (\env (Param t name) -> (name, t) : env) env params
             params' = map (\(Param t name) -> t) params
+            t' = typeofExpr expr env'
 
     addToEnv' :: TEnv -> Definition -> TEnv    
     addToEnv' env def = addToEnv def env
 
-    addDefinitionsToEnv :: [Definition] -> TEnv -> TEnv
-    addDefinitionsToEnv defs env = reverse $ foldl addToEnv' env (reverse defs)
+    -- fonction principale du module, elle prends la sortie de la fonction checkName pour son premier parametre et un envirion de type vide  
+    checkType :: [Definition] -> TEnv -> TEnv
+    checkType defs env = reverse $ foldl addToEnv' env (reverse defs)
 
     typeof :: Statement -> TEnv -> (TEnv, Type)
     typeof (Expr e) env = ([],typeofExpr e env)
@@ -60,7 +70,6 @@ module Type (typeof) where
     typeofValue (FuncValue expr params local) global = TFunc (typeofExpr expr global) params'
         where
             params' = map (\(Param t name) -> t) params
-    typeofValue _ _ = error "Erreur : Valeur inconnu"
 
     typeofBinaryOp :: Operator -> Expr -> Expr -> TEnv -> Type
     typeofBinaryOp (Operator Arithmetic _) x y env =
@@ -89,7 +98,7 @@ module Type (typeof) where
     typeofLet :: [Definition] -> Expr -> TEnv -> Type
     typeofLet defs expr env = typeofExpr expr env'
         where 
-            env' = addDefinitionsToEnv defs env
+            env' = checkType defs env
     
     typeofCaseOf :: Expr -> [CasePattern] -> TEnv -> Type
     typeofCaseOf condition cases env =
