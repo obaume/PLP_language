@@ -19,12 +19,12 @@ module Type (typeof) where
             t' = typeofExpr expr env
     addToEnv (FuncDefinition t name params expr) env = 
         if t == t' 
-            then (name, TFunc t' params') : env
+            then (name, TFunc t params') : env
             else error "type de retour différent du type de fonction"
         where
             env' = foldl (\env (Param t name) -> (name, t) : env) env params
             params' = map (\(Param t name) -> t) params
-            t' = typeofExpr expr env'
+            t' = typeofExpr expr ((name , TFunc t params'):env')
 
     addToEnv' :: TEnv -> Definition -> TEnv    
     addToEnv' env def = addToEnv def env
